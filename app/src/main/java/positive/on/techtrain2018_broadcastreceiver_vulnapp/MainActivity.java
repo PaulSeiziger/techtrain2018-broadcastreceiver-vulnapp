@@ -1,7 +1,9 @@
 package positive.on.techtrain2018_broadcastreceiver_vulnapp;
 
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -9,11 +11,15 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
+    private LocalBroadcastManager localBroadcastManager;
+    private MyReceiver myReceiver = new MyReceiver();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        localBroadcastManager = LocalBroadcastManager.getInstance(this);
 
         Button makeTransaction = (Button) findViewById(R.id.button);
         makeTransaction.setOnClickListener(new View.OnClickListener() {
@@ -31,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
                 new android.os.Handler().postDelayed(
                         new Runnable() {
                             public void run() {
-                                sendBroadcast(notificationIntent);
+                                localBroadcastManager.sendBroadcast(notificationIntent);
                                 Log.d("VulnApp","Transaction has been sent");
                             }
                         },
@@ -39,5 +45,20 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("positive.on.techtrain2018.TRANSACTION_FINISHED");
+
+        localBroadcastManager.registerReceiver(myReceiver, filter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        localBroadcastManager.unregisterReceiver(myReceiver);
     }
 }
